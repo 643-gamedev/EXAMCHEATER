@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>STUDY_TERMINAL</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="crt">
+  <div class="scanlines"></div>
+
+  <header class="topbar">
+    <pre class="logo">
+ ____ ____ __  __ ___   __ __
+/ ___|  _ \|  \/  |__ \ / /_ \
+\___ \ |_) | |\/| | / /| | | |
+ ___) |  __/| |  | |/ /_| |_| |
+|____/|_|   |_|  |_|____|\__/
+STUDY TERMINAL v0.1 :: free &amp; open source
+    </pre>
+    <div class="topbar-right">
+      <span id="whoami" class="hidden">user: <b id="whoami-name"></b></span>
+      <span id="guestBadge" class="guest-badge hidden">GUEST MODE — clears on tab close</span>
+      <button id="logoutBtn" class="ghost-btn hidden">[logout]</button>
+    </div>
+  </header>
+
+  <!-- AUTH SCREEN -->
+  <section id="authScreen" class="panel">
+    <div class="prompt-line">$ init study_terminal --mode=<span id="authModeLabel">login</span></div>
+    <form id="authForm" class="auth-form">
+      <label>username
+        <input id="authUsername" type="text" autocomplete="username" required />
+      </label>
+      <label>password
+        <input id="authPassword" type="password" autocomplete="current-password" required />
+      </label>
+      <div class="auth-actions">
+        <button type="submit" id="authSubmit" class="term-btn">[ login ]</button>
+        <button type="button" id="authToggle" class="ghost-btn">need an account? register --&gt;</button>
+      </div>
+      <p id="authError" class="error hidden"></p>
+    </form>
+    <div class="guest-row">
+      <button type="button" id="guestBtn" class="ghost-btn">[ continue as guest ]</button>
+      <span class="hint inline"># guest chats vanish the moment you close this tab — nothing is saved</span>
+    </div>
+    <p class="hint"># accounts are stored locally in data/users.xlsx for now (swap-ready for supabase/firebase)</p>
+  </section>
+
+  <!-- APP SCREEN -->
+  <section id="appScreen" class="panel hidden">
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="chat">[1] chat</button>
+      <button class="tab-btn" data-tab="quiz">[2] quiz</button>
+      <button class="tab-btn" data-tab="flash">[3] flashcards</button>
+      <button class="tab-btn" data-tab="lan">[4] lan chat</button>
+      <button class="tab-btn" data-tab="guide">[5] study guide</button>
+      <span class="model-badge" id="modelBadge">model: local / offline-ready</span>
+    </nav>
+
+    <!-- CHAT TAB -->
+    <div class="tab-panel" id="tab-chat">
+      <div id="chatLog" class="log"></div>
+      <form id="chatForm" class="input-row">
+        <span class="caret">&gt;</span>
+        <input id="chatInput" type="text" placeholder="ask your tutor anything about your exam..." autocomplete="off" />
+        <button type="submit" class="term-btn">send</button>
+      </form>
+    </div>
+
+    <!-- QUIZ TAB -->
+    <div class="tab-panel hidden" id="tab-quiz">
+      <form id="quizForm" class="input-row">
+        <span class="caret">&gt;</span>
+        <input id="quizTopic" type="text" placeholder="topic (e.g. cellular respiration)" autocomplete="off" />
+        <input id="quizCount" type="number" min="1" max="15" value="5" class="num-input" />
+        <button type="submit" class="term-btn">generate</button>
+      </form>
+      <div id="quizArea" class="log"></div>
+    </div>
+
+    <!-- FLASHCARDS TAB -->
+    <div class="tab-panel hidden" id="tab-flash">
+      <form id="flashForm" class="input-row">
+        <span class="caret">&gt;</span>
+        <input id="flashTopic" type="text" placeholder="topic (e.g. french revolution dates)" autocomplete="off" />
+        <input id="flashCount" type="number" min="1" max="20" value="8" class="num-input" />
+        <button type="submit" class="term-btn">generate</button>
+      </form>
+      <div id="flashArea" class="flash-grid"></div>
+    </div>
+
+    <!-- LAN CHAT TAB -->
+    <div class="tab-panel hidden" id="tab-lan">
+      <p class="hint inline">
+        # shared with anyone else who opens this same server's address on your network — great for
+        splitting up notes before a test. no cloud, no websockets, just this LAN.
+      </p>
+      <div id="lanLog" class="log"></div>
+      <form id="lanForm" class="input-row">
+        <span class="caret">&gt;</span>
+        <input id="lanInput" type="text" placeholder="message the room..." autocomplete="off" />
+        <label class="file-btn ghost-btn" for="lanFile">[ + file/image ]</label>
+        <input id="lanFile" type="file" class="hidden" />
+        <button type="submit" class="term-btn">send</button>
+      </form>
+      <div id="lanFileName" class="hint inline hidden"></div>
+    </div>
+
+    <!-- STUDY GUIDE TAB -->
+    <div class="tab-panel hidden" id="tab-guide">
+      <form id="guideForm" class="guide-form">
+        <label>ai provider
+          <select id="guideProvider">
+            <option value="ollama">local (ollama) — free, default</option>
+            <option value="anthropic">anthropic (claude) — bring your own key</option>
+            <option value="openai">openai (chatgpt) — bring your own key</option>
+            <option value="openrouter">openrouter — bring your own key</option>
+          </select>
+        </label>
+        <div id="guideKeyRow" class="guide-key-row hidden">
+          <label>api key
+            <input id="guideApiKey" type="password" placeholder="sk-..." autocomplete="off" />
+          </label>
+          <label>model <span class="hint inline">(optional, provider default used if blank)</span>
+            <input id="guideModel" type="text" placeholder="e.g. gpt-4o-mini" autocomplete="off" />
+          </label>
+          <p class="hint inline">
+            # your key is kept only in this browser's localStorage and sent straight to that
+            provider's official API by your own server — never stored anywhere else.
+          </p>
+        </div>
+        <label>topic
+          <input id="guideTopic" type="text" placeholder="e.g. thermodynamics" autocomplete="off" />
+        </label>
+        <label>paste notes (optional)
+          <textarea id="guideNotes" rows="5" placeholder="paste lecture notes, textbook excerpts, etc."></textarea>
+        </label>
+        <button type="submit" class="term-btn">generate study guide</button>
+      </form>
+      <div id="guideOutput" class="log guide-output"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span>100% free &amp; open source · runs on ollama locally · works offline once set up</span>
+  </footer>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

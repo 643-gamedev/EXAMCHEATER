@@ -1,0 +1,6 @@
+node_modules/
+.env
+data/users.xlsx
+data/lan-uploads/
+*.log
+.DS_Store
